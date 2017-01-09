@@ -10,3 +10,12 @@ a javascript file is always to fill in all the implicit 'any' points with explic
 tedious process to complete in `vim`, hence this script.
 
 I imagine solutions already exist but it is hard to google.
+
+## Disclaimer
+
+I know that the code is terrible. That is part of the fun until it matures a bit.
+
+## Todo
+
+- Account for parenthesis required when adding a type to the argument of a single
+  argument arrow function.
