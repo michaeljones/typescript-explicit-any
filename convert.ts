@@ -1,19 +1,23 @@
 
 
 import fs = require('fs');
+import childProcess = require('child_process');
 
 
-const errors = fs.readFileSync('errors.output', {encoding: 'utf8'}).split('\n');
-const code = fs.readFileSync('location.ts', {encoding: 'utf8'}).split('\n');
+const filePath = process.argv[2];
 
-const errorPos = errors.map(error => {
+const code = fs.readFileSync(filePath, {encoding: 'utf8'}).split('\n');
+
+const result = childProcess.spawnSync('tsc', ['--noEmit', '--noImplicitAny', filePath]);
+
+const errors = result.stdout.toString('utf8');
+
+const errorPos = errors.split('\n').map(error => {
     const result = error.match(/.*\((.*),(.*)\)/);
 
     if (!result) {
         return;
     }
-
-    console.log(result);
 
     const line = parseInt(result[1], 10);
     const character = parseInt(result[2], 10);
@@ -40,8 +44,6 @@ const cmpPos = (a, b) => {
 
 errorPos.sort(cmpPos).reverse();
 
-console.log(errorPos);
-
 function findVariableLength(str) {
     for (let i=0; i<str.length; ++i) {
         if (!str[i].match(/[a-zA-Z1-9_]/)) {
@@ -55,8 +57,6 @@ errorPos.forEach(pos => {
     const variableLength = findVariableLength(line.slice(pos.character));
     code[pos.line - 1] = line.slice(0, pos.character + variableLength) + ": any" + line.slice(pos.character + variableLength);
 });
-
-// console.log(code);
 
 const output = code.join('\n');
 
