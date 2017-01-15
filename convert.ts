@@ -62,10 +62,25 @@ function findVariableLength(str) {
     }
 }
 
+function isArrowFunction(str) {
+    console.log(str, Boolean(str.match(/^ *=>/)));
+    return Boolean(str.match(/^ *=>/));
+}
+
 errorPos.forEach(pos => {
     const line = code[pos.line - 1];
     const variableLength = findVariableLength(line.slice(pos.character));
-    code[pos.line - 1] = line.slice(0, pos.character + variableLength) + ": any" + line.slice(pos.character + variableLength);
+    const isSingleArgumentArrowFunction = isArrowFunction(line.slice(pos.character + variableLength));
+
+    if (isSingleArgumentArrowFunction) {
+        const start = line.slice(0, pos.character - 1);
+        const variableName = line.slice(pos.character - 1, pos.character + variableLength);
+        const rest = line.slice(pos.character + variableLength);
+        code[pos.line - 1] = `${start}(${variableName}: any)${rest}`;
+    }
+    else {
+        code[pos.line - 1] = line.slice(0, pos.character + variableLength) + ": any" + line.slice(pos.character + variableLength);
+    }
 });
 
 const output = code.join('\n');
