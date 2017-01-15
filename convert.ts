@@ -12,19 +12,29 @@ const result = childProcess.spawnSync('tsc', ['--noEmit', '--noImplicitAny', fil
 
 const errors = result.stdout.toString('utf8');
 
-const errorPos = errors.split('\n').map(error => {
-    const result = error.match(/.*\((.*),(.*)\)/);
+const errorCodes = [
+    'TS7005',
+    'TS7006',
+];
 
-    if (!result) {
-        return;
-    }
+const errorRegex = `(${errorCodes.join('|')})`;
 
-    const line = parseInt(result[1], 10);
-    const character = parseInt(result[2], 10);
+const errorPos = errors
+    .split('\n')
+    .filter(line => line.match(errorRegex))
+    .map(error => {
+        const result = error.match(/.*\((.*),(.*)\)/);
 
-    return {line, character};
-})
-.filter(entry => entry !== undefined);
+        if (!result) {
+            return;
+        }
+
+        const line = parseInt(result[1], 10);
+        const character = parseInt(result[2], 10);
+
+        return {line, character};
+    })
+    .filter(entry => entry !== undefined);
 
 const cmpPos = (a, b) => {
     if (a.line > b.line) {
